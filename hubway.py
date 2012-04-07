@@ -43,8 +43,11 @@ def distancematrix(startplaces,endplaces):
     distances = numpy.zeros((len(startplaces), len(endplaces)), dtype=numpy.int32) # distances in m
     for i,row in enumerate(result['rows']):
     	for j,element in enumerate(row['elements']):
-    		times[i][j] = element['duration']['value']
-    		distances[i][j] = element['distance']['value']
+    	    if element['status']=='ZERO_RESULTS':
+    	        print 'ZERO_RESULTS for '  + result['origin_addresses'][i]  + ' to ' + result['destination_addresses'][j]
+    	    else:
+    		    times[i][j] = element['duration']['value']
+    		    distances[i][j] = element['distance']['value']
     return times,distances
         
         
