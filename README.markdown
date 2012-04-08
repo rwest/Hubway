@@ -1,9 +1,12 @@
 Hubway
 ------
+The aim of this project is to solve a travelling salesman problem
+around the Hubway bicycle rental stations in Boston, MA.
 
+## Installing google or-tools ##
 
 To install the google or-tools requires something like
-[this](http://code.google.com/p/or-tools/wiki/AGettingStarted):
+[this](http://code.google.com/p/or-tools/wiki/AGettingStarted), on MacOS X:
 
     svn checkout http://or-tools.googlecode.com/svn/trunk/ google-or-tools
     cd google-or-tools
@@ -12,23 +15,34 @@ To install the google or-tools requires something like
     wget http://download.mono-project.com/sources/mono/mono-2.10.9.tar.bz2
     cd ../../
     make third_party
-    # you will have to accept a couple of certificates during the above step
+
+You will have to accept a couple of certificates during the above step
+Now to install the python modules. The first of these two lines will 
+put it in your user ~/Library/Python/2.7/lib/python/site-packages/.
+The second one will put it wherever pip puts stuff. Your choice:
+
 	make install_python_modules
-	# or, perhaps better (depending where you want things installing)
 	pip install dependencies/sources/google-apputils/
 	
-	# You can try a 
+At this point you can try a 
+
 	make all
-	# at this point, but it'll probably not find gmcs.
-	# For some reason, mono doesn't seem to install, until you do:
+
+but it'll probably not find gmcs.
+For some reason, mono doesn't seem to install, until you do:
+
 	make dependencies/install/bin/gmcs
-	# this will take a LONG time
-	# it still doesn't find the gmcs that you just built, until you do
+
+this will take a LONG time.
+It still doesn't find the gmcs that you just spent ages building, until you do
+
 	export PATH=$PATH:$PWD/dependencies/install/bin/
-	#now this should work
+
+Now try another
+
 	make all
 	
-The new things will not be on your python path until you do
+The new tools will not be on your python path until you do something temporary like
 
     export PYTHONPATH=$PYTHONPATH:$PWD/src
     
