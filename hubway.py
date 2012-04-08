@@ -70,6 +70,8 @@ for s in tree.iter('station'):
 number_of_hackers=2     # This partitions the problem
 this_hacker=0           # hacker number 0 of 2
 debug=2       #debug is a limit for testing, make it very big for a full run
+data_dir = 'data'
+os.path.exists(data_dir) or os.mkdir(data_dir)
 
 assert this_hacker < number_of_hackers
 number_each=int(numpy.ceil(len(stations)/float(number_of_hackers)))
@@ -89,11 +91,10 @@ for idx_row in xrange(number_of_rowblocks):
         print 'start ' + startplaces_ids +',  end ' + endplaces_ids
          
         
-        distfilename = 'dist_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt'
-        timefilename = 'time_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt'
+        distfilename = os.path.join(data_dir,'dist_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
+        timefilename = os.path.join(data_dir,'time_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
         if os.path.exists(distfilename) and os.path.exists(timefilename):
             print 'skipping ' + distfilename + ' and ' + timefilename
-                
         else:
             times,distances = distancematrix(startplaces,endplaces)
             #with open(distfilename,'w') as f:
@@ -108,12 +109,12 @@ for idx_row in xrange(number_of_rowblocks):
 from matplotlib import pyplot as plt
 
 times=numpy.zeros((len(stations),len(stations)),dtype=numpy.int32)
-time_matrix_list=[a for a in os.listdir(os.curdir) if a.startswith('time_matrix') and a.endswith('.txt')]
+time_matrix_list=[a for a in os.listdir(data_dir) if a.startswith('time_matrix') and a.endswith('.txt')]
 for time_matrix in time_matrix_list:
     row,col=time_matrix.split('.')[0].split('_')[2:4]
     row=int(row)
     col=int(col)
-    timesblock=numpy.genfromtxt(time_matrix)
+    timesblock=numpy.genfromtxt(os.path.join(data_dir,time_matrix))
     print row,col
     times[row*10:(row+1)*10,col*10:(col+1)*10]=timesblock[0:10,0:10]
 
