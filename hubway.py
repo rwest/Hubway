@@ -121,10 +121,8 @@ for time_matrix in time_matrix_list:
     times[row*10:(row+1)*10,col*10:(col+1)*10]=timesblock[0:10,0:10]
 
 plt.spy(times)
-plt.show()
 
 plt.spy(times==-1) 
-plt.show()
 # the shape of this is discouraging: did we screw up somewhere?
 
 # get the rows with more than one negative one
