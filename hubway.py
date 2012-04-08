@@ -38,13 +38,15 @@ def distancematrix(startplaces,endplaces):
     result = json.load(urllib2.urlopen(url))
     assert(result['status']!='OVER_QUERY_LIMIT')
 
-    num_stations = len(stations)
-    times = numpy.zeros((len(startplaces), len(endplaces)), dtype=numpy.int32) # times in seconds
-    distances = numpy.zeros((len(startplaces), len(endplaces)), dtype=numpy.int32) # distances in m
+    
+    times = numpy.zeros((len(result['origin_addresses']), len(result['destination_addresses'])), dtype=numpy.int32) # times in seconds
+    distances = numpy.zeros((len(result['origin_addresses']), len(result['destination_addresses'])), dtype=numpy.int32) # distances in m
     for i,row in enumerate(result['rows']):
     	for j,element in enumerate(row['elements']):
     	    if element['status']=='ZERO_RESULTS':
     	        print 'ZERO_RESULTS for '  + result['origin_addresses'][i]  + ' to ' + result['destination_addresses'][j]
+    	        times[i][j]=-1
+    	        distances[i][j]=-1
     	    else:
     		    times[i][j] = element['duration']['value']
     		    distances[i][j] = element['distance']['value']
@@ -64,16 +66,18 @@ for s in tree.iter('station'):
 	station.name = s.find('name').text
 	stations.append(station)
 
+##################### Change These ####################### 
+number_of_hackers=2     # This partitions the problem
+this_hacker=0           # hacker number 0 of 2
+debug=2       #debug is a limit for testing, make it very big for a full run
 
-number_of_hackers=2
-this_hacker=0 #hacker number 0 of 2
 assert this_hacker < number_of_hackers
 number_each=int(numpy.ceil(len(stations)/float(number_of_hackers)))
-
 startstations=stations[this_hacker*number_each:(this_hacker+1)*number_each]
 endstations=stations
-number_of_rowblocks=int(numpy.ceil(number_each/10.0))
-number_of_colblocks=int(numpy.ceil(len(stations)/10.0))
+
+number_of_rowblocks=min(debug,int(numpy.ceil(number_each/10.0)))
+number_of_colblocks=min(debug,int(numpy.ceil(len(stations)/10.0)))
 
 for idx_row in xrange(number_of_rowblocks):
     for idx_col in xrange(number_of_colblocks):
@@ -85,20 +89,36 @@ for idx_row in xrange(number_of_rowblocks):
         print 'start ' + startplaces_ids +',  end ' + endplaces_ids
          
         
-        distfilename = 'dist_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.numpy'
-        timefilename = 'time_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.numpy'
+        distfilename = 'dist_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt'
+        timefilename = 'time_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt'
         if os.path.exists(distfilename) and os.path.exists(timefilename):
             print 'skipping ' + distfilename + ' and ' + timefilename
                 
         else:
             times,distances = distancematrix(startplaces,endplaces)
-            with open(distfilename,'w') as f:
-                    distances.tofile(f)
-            with open(timefilename,'w') as f:
-                    distances.tofile(f)
+            #with open(distfilename,'w') as f:
+            #        distances.tofile(f)
+            #with open(timefilename,'w') as f:
+            #        distances.tofile(f)
+            numpy.savetxt(distfilename,distances)
+            numpy.savetxt(timefilename,times)
             print 'writing ' + distfilename + ' and ' + timefilename      
             time.sleep(numpy.random.rand()*2+12)
             
+from matplotlib import pyplot as plt
+
+times=numpy.zeros((len(stations),len(stations)),dtype=numpy.int32)
+time_matrix_list=[a for a in os.listdir(os.curdir) if a.startswith('time_matrix') and a.endswith('.txt')]
+for time_matrix in time_matrix_list:
+    row,col=time_matrix.split('.')[0].split('_')[2:4]
+    row=int(row)
+    col=int(col)
+    timesblock=numpy.genfromtxt(time_matrix)
+    print row,col
+    times[row*10:(row+1)*10,col*10:(col+1)*10]=timesblock[0:10,0:10]
+
+plt.spy(times)
+plt.show()
 
 
 
