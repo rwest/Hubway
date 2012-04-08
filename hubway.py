@@ -140,3 +140,70 @@ pruned_times = times[keepers][:,keepers]
 pruned_stations = [stations[i] for i in range(len(stations)) if i in keepers]
 plt.spy(pruned_times==-1)
 
+### Now for the good stuff, based on tsp.py
+# Copyright 2010-2012 Google
+# Licensed under the Apache License, Version 2.0
+
+
+import random
+
+from google.apputils import app
+import gflags
+import os
+import sys
+# set OR_TOOLS_PATH in your environment to override the default
+or_tools_path = '/Users/rwest/XCodeProjects/google-or-tools/trunk'
+if not os.path.exists(or_tools_path):
+	or_tools_path = 'or_tools_path'
+or_tools_path = os.getenv('OR_TOOLS_PATH',or_tools_path)
+sys.path.append(os.path.join(or_tools_path,'src'))
+
+from constraint_solver import pywraprouting
+
+
+def Distance(i, j):
+  """The distance from i to j"""
+  return pruned_times[i,j]
+ 
+tsp_size = len(pruned_times)
+forbidden_connections = [] # a list of tuples of forbidden connections
+
+if True:
+	# TSP of size FLAGS.tsp_size
+    # Second argument = 1 to build a single tour (it's a TSP).
+    # Nodes are indexed from 0 to FLAGS_tsp_size - 1, by default the start of
+    # the route is node 0.
+    routing = pywraprouting.RoutingModel(tsp_size, 1)
+    # Setting first solution heuristic (cheapest addition).
+    routing.SetCommandLineOption('routing_first_solution', 'PathCheapestArc')
+    # Disabling Large Neighborhood Search, comment out to activate it.
+    # routing.SetCommandLineOption('routing_no_lns', 'true')
+    
+    # Setting the cost function.
+    # Put a callback to the distance accessor here. The callback takes two
+    # arguments (the from and to node inidices) and returns the distance between
+    # these nodes.
+    routing.SetCost(Distance)
+
+    for from_node,to_node in forbidden_connections:
+      if routing.NextVar(from_node).Contains(to_node):
+    	print 'Forbidding connection ' + str(from_node) + ' -> ' + str(to_node)
+    	routing.NextVar(from_node).RemoveValue(to_node)
+
+    # Solve, returns a solution if any.
+    assignment = routing.Solve()
+    if assignment:
+      # Solution cost.
+      print assignment.ObjectiveValue()
+      # Inspect solution.
+      # Only one route here; otherwise iterate from 0 to routing.vehicles() - 1
+      route_number = 0
+      node = routing.Start(route_number)
+      route = ''
+      while not routing.IsEnd(node):
+    	route += pruned_stations[int(node)].prettystring() + ' -> \n'
+    	node = assignment.Value(routing.NextVar(node))
+      route += '0'
+      print route
+    else:
+      print 'No solution found.'
