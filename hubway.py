@@ -23,6 +23,8 @@ class Station():
 		return "<Station %2d>" % self.id
 	def __str__(self):
 		return self.lat+','+self.long
+	def prettystring(self):
+		return "%s at %s"%(self.name, str(self))
 	pass
 
 
@@ -121,5 +123,22 @@ for time_matrix in time_matrix_list:
 plt.spy(times)
 plt.show()
 
+plt.spy(times==-1) 
+plt.show()
+# the shape of this is discouraging: did we screw up somewhere?
 
+# get the rows with more than one negative one
+inaccessible_stations = set(((times==-1).sum(1)>1).nonzero()[0])
+# add the columns with more than one negative one
+inaccessible_stations = inaccessible_stations.union(((times==-1).sum(0)>1).nonzero()[0])
+print "Difficulty accessing these stations, so removing them:"
+for s in inaccessible_stations:
+	print stations[s].prettystring()
+keepers = range(len(times))
+for s in inaccessible_stations:
+	keepers.remove(s)
+pruned_times = times[keepers][:,keepers]
+
+pruned_stations = [stations[i] for i in range(len(stations)) if i in keepers]
+plt.spy(pruned_times==-1)
 
