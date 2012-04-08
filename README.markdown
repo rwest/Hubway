@@ -17,11 +17,22 @@ To install the google or-tools requires something like
     make third_party
 
 You will have to accept a couple of certificates during the above step
-Now to install the python modules. The first of these two lines will 
-put it in your user ~/Library/Python/2.7/lib/python/site-packages/.
-The second one will put it wherever pip puts stuff. Your choice:
+Now to install the python modules. 
+The first of these three options will 
+put it in your user ~/Library/Python/2.7/lib/python/site-packages/,
+which you had better make sure is on your python path.
+The second set of commands will put it wherever setuptools normally puts
+stuff, without a `--user` flag.
+The third uses pip, and puts it where pip
+puts stuff, but it seems to miss the dependencies: "python-dateutil>=1.4",
+"python-gflags>=1.4", "pytz>=2010".  You should only need one of the three:
 
 	make install_python_modules
+	
+	cd dependencies/sources/google-apputils
+	sudo python2.7 setup.py install
+	cd ../../..
+	
 	pip install dependencies/sources/google-apputils/
 	
 At this point you can try a 
@@ -29,11 +40,14 @@ At this point you can try a
 	make all
 
 but it'll probably not find gmcs.
-For some reason, mono doesn't seem to install, until you do:
+For some reason, mono doesn't seem to have been installed.
+It is by no means certain that you actually need it - as we are only
+interested in the python libraries not the C# ones, but if it turns out 
+that you do, then this should build it:
 
 	make dependencies/install/bin/gmcs
 
-this will take a LONG time.
+This will take a *LONG* time.
 It still doesn't find the gmcs that you just spent ages building, until you do
 
 	export PATH=$PATH:$PWD/dependencies/install/bin/
