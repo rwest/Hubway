@@ -26,11 +26,15 @@
 	  var route;
 	  
 	  function plotroute(route){
+		  var flightPlanCoordinates = [];
+		  
 	  	  for (var i = 0; i < route.length; i++){
 	  		  station = route[i];
 	  		  
 	  		  // Create a Google LatLng object to pass to the Google Marker
 	  		  var point = new google.maps.LatLng(station.lat, station.long);
+	  		  // save it in the polyline coordinates list
+	  		  flightPlanCoordinates[i] = point;
 	  		  
 	  		  // Create the Google Marker Point with the LatLng object
 	  		  var marker = new google.maps.Marker({
@@ -39,7 +43,15 @@
 	  		  	title: station.name
 	  		  });
 	  	  }
-	    }
+	      var flightPath = new google.maps.Polyline({
+	        path: flightPlanCoordinates,
+	        strokeColor: "#FF0000",
+	        strokeOpacity: 0.7,
+	        strokeWeight: 2
+	      });
+	      
+	      flightPath.setMap(map);
+		}
 	    
 	  function loadroute() {
 		  	var xobj = new XMLHttpRequest();
