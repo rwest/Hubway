@@ -74,6 +74,10 @@ function show_route_leg(i, directionResult) {
     path.forEach(function(element,index){
         if (element.equals(start)) { index_of_start = index; }
     });
+    if (index_of_start<0) {
+        // can't find the coarse start point, probably already updated this leg.
+        return;
+    }
     path.removeAt(index_of_start);
     for (var j = 0; j<overview_path.length; j++){
         path.insertAt(index_of_start+j, overview_path[j]);
