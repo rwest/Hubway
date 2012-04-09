@@ -168,6 +168,8 @@ def Distance(i, j):
 tsp_size = len(pruned_times)
 forbidden_connections = [] # a list of tuples of forbidden connections
 
+sorted_stations = []
+
 if True:
     # TSP of size FLAGS.tsp_size
     # Second argument = 1 to build a single tour (it's a TSP).
@@ -203,8 +205,13 @@ if True:
       while not routing.IsEnd(node):
         station = pruned_stations[int(node)]
         route += station.prettystring() + ' -> \n'
+        sorted_stations.append({'name': station.name, 'lat':station.lat, 'long':station.long})
         node = assignment.Value(routing.NextVar(node))
+
       route += '0'
       print route
     else:
       print 'No solution found.'
+
+with open('route.json','w') as f:
+    json.dump(sorted_stations,f)
