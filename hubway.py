@@ -71,8 +71,8 @@ for s in tree.iter('station'):
 
 ##################### Change These ####################### 
 number_of_hackers=2     # This partitions the problem
-this_hacker=0           # hacker number 0 of 2
-debug=2       #debug is a limit for testing, make it very big for a full run
+this_hacker=1           # hacker number 0 of 2
+debug=200       #debug is a limit for testing, make it very big for a full run
 data_dir = 'data'
 os.path.exists(data_dir) or os.mkdir(data_dir)
 
@@ -88,6 +88,13 @@ for idx_row in xrange(number_of_rowblocks):
     for idx_col in xrange(number_of_colblocks):
         startplaces_ids = '|'.join([str(s.id).rjust(2) for s in stations[this_hacker*number_each:(this_hacker+1)*number_each][idx_row*10:(idx_row+1)*10] ])
         endplaces_ids = '|'.join([str(s.id).rjust(2) for s in stations[(idx_col*10):(idx_col+1)*10]])
+        #make a check matrix of start->end ids. 
+        startplaces_list = [s.id for s in stations[this_hacker*number_each:(this_hacker+1)*number_each][idx_row*10:(idx_row+1)*10] ]
+        endplaces_list = [s.id for s in stations[(idx_col*10):(idx_col+1)*10]]
+        checkmatrix=numpy.empty((len(startplaces_list),len(endplaces_list)))
+        for idx_block_row,start in enumerate(startplaces_list):
+            for idx_block_col,end in enumerate(endplaces_list):
+                checkmatrix[idx_block_row,idx_block_col]=start*1000+end
         
         startplaces = '|'.join([str(s) for s in stations[this_hacker*number_each:(this_hacker+1)*number_each][idx_row*10:(idx_row+1)*10] ])
         endplaces = '|'.join([str(s) for s in stations[(idx_col*10):(idx_col+1)*10]])
@@ -96,6 +103,8 @@ for idx_row in xrange(number_of_rowblocks):
         
         distfilename = os.path.join(data_dir,'dist_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
         timefilename = os.path.join(data_dir,'time_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
+        checkfilename = os.path.join(data_dir,'check_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
+        
         if os.path.exists(distfilename) and os.path.exists(timefilename):
             print 'skipping ' + distfilename + ' and ' + timefilename
         else:
@@ -108,6 +117,8 @@ for idx_row in xrange(number_of_rowblocks):
             numpy.savetxt(timefilename,times)
             print 'writing ' + distfilename + ' and ' + timefilename      
             time.sleep(numpy.random.rand()*2+12)
+        if not os.path.exists(checkfilename):
+            numpy.savetxt(checkfilename,checkmatrix)
             
 from matplotlib import pyplot as plt
 
@@ -120,7 +131,17 @@ for time_matrix in time_matrix_list:
     timesblock=numpy.genfromtxt(os.path.join(data_dir,time_matrix))
     print row,col
     times[row*10:(row+1)*10,col*10:(col+1)*10]=timesblock[0:10,0:10]
-
+check=numpy.zeros((len(stations),len(stations)),dtype=numpy.int32)
+check_matrix_list=[a for a in os.listdir(data_dir) if a.startswith('check_matrix') and a.endswith('.txt')]
+for check_matrix in check_matrix_list:
+    row,col=check_matrix.split('.')[0].split('_')[2:4]
+    row=int(row)
+    col=int(col)
+    checkblock=numpy.genfromtxt(os.path.join(data_dir,check_matrix))
+    print row,col
+    check[row*10:(row+1)*10,col*10:(col+1)*10]=checkblock[0:10,0:10]
+        
+        
 plt.spy(times)
 
 plt.spy(times==-1) 
