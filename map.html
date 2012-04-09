@@ -12,7 +12,10 @@
 	</script>
 	<script type="text/javascript">
 		var map;
+		var directionsDisplay;
+		var directionsService = new google.maps.DirectionsService();
 	  function initialize() {
+		  directionsDisplay = new google.maps.DirectionsRenderer();
 		var boston = new google.maps.LatLng(42.340592,-71.09489);
 		var myOptions = {
 		  center: boston,
@@ -21,13 +24,35 @@
 		};
 		 map = new google.maps.Map(document.getElementById("map_canvas"),
 			myOptions);
+		directionsDisplay.setMap(map);
 	  }
 	  
 	  var route;
 	  
 	  function plotroute(route){
-		  var flightPlanCoordinates = [];
+		var flightPlanCoordinates = [];
+	
+		function coords(i){
+			return route[i].lat + ',' + route[i].long;
+		};
 		  
+		function calc_route_leg(i){
+			var start = coords(i);
+			var end;
+			if (i+1 == route.length) { end = coords(0); }
+			else { end = coords(i+1); };
+			var request = {
+			  origin:start,
+			  destination:end,
+			  travelMode: google.maps.TravelMode.BICYCLING,
+			};
+			directionsService.route(request, function(result, status) {
+			  if (status == google.maps.DirectionsStatus.OK) {
+				directionsDisplay.setDirections(result);
+			  }
+			});
+		}
+		
 	  	  for (var i = 0; i < route.length; i++){
 	  		  station = route[i];
 	  		  
@@ -40,9 +65,20 @@
 	  		  var marker = new google.maps.Marker({
 	  		  	position: point, 
 	  		  	map: map,
-	  		  	title: station.name
+	  		  	title: station.name,
+	  		  	id: i+0,
 	  		  });
+	  		  
+	  		  // Create an Event Listener that does something when user clicks a station
+	  		  google.maps.event.addListener(marker, 'click',
+	  		  	function()
+	  		  	{
+	  		  		calc_route_leg(this.id);
+	  		  	});
+
 	  	  }
+	  	  
+	  	  
 	      var flightPath = new google.maps.Polyline({
 	        path: flightPlanCoordinates,
 	        strokeColor: "#FF0000",
