@@ -11,6 +11,7 @@
 	  src="http://maps.googleapis.com/maps/api/js?&sensor=false">
 	</script>
 	<script type="text/javascript">
+		var map;
 	  function initialize() {
 		var boston = new google.maps.LatLng(42.340592,-71.09489);
 		var myOptions = {
@@ -18,9 +19,47 @@
 		  zoom: 13,
 		  mapTypeId: google.maps.MapTypeId.ROADMAP
 		};
-		var map = new google.maps.Map(document.getElementById("map_canvas"),
+		 map = new google.maps.Map(document.getElementById("map_canvas"),
 			myOptions);
 	  }
+	  
+	  var route;
+	  
+	  function plotroute(route){
+	  	  for (var i = 0; i < route.length; i++){
+	  		  station = route[i];
+	  		  
+	  		  // Create a Google LatLng object to pass to the Google Marker
+	  		  var point = new google.maps.LatLng(station.lat, station.long);
+	  		  
+	  		  // Create the Google Marker Point with the LatLng object
+	  		  var marker = new google.maps.Marker({
+	  		  	position: point, 
+	  		  	map: map,
+	  		  	title: station.name
+	  		  });
+	  	  }
+	    }
+	    
+	  function loadroute() {
+		  	var xobj = new XMLHttpRequest();
+		  	xobj.overrideMimeType("application/json");
+		  	xobj.open('GET', 'route.json', true);
+		  	xobj.onreadystatechange = function () {
+		  		if (xobj.readyState == 4) {
+		  			var jsonTexto = xobj.responseText;
+		  			route = JSON.parse(jsonTexto);
+		  			plotroute(route);
+		  		}
+		  	}
+		  	xobj.send(null);
+	  }
+	  
+
+	  
+	  loadroute();
+	  
+	  
 	</script>
   </head>
   <body onload="initialize()">
