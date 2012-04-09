@@ -15,6 +15,7 @@ import json
 import os
 import numpy
 import time
+import random
 
 class Station():
     def __init__(self):
@@ -135,8 +136,14 @@ for s in inaccessible_stations:
 keepers = range(len(times))
 for s in inaccessible_stations:
     keepers.remove(s)
+    
+print "Also removing these stations, just for testing:"
+for s in range(40):
+    if s in keepers:
+        print stations[s].prettystring()
+        keepers.remove(s)
+    
 pruned_times = times[keepers][:,keepers]
-
 pruned_stations = [stations[i] for i in range(len(stations)) if i in keepers]
 plt.spy(pruned_times==-1)
 
@@ -145,7 +152,7 @@ plt.spy(pruned_times==-1)
 # Licensed under the Apache License, Version 2.0
 
 
-import random
+
 
 from google.apputils import app
 import gflags
@@ -196,7 +203,7 @@ if True:
     assignment = routing.Solve()
     if assignment:
       # Solution cost.
-      print assignment.ObjectiveValue()
+      print "total time:", assignment.ObjectiveValue()
       # Inspect solution.
       # Only one route here; otherwise iterate from 0 to routing.vehicles() - 1
       route_number = 0
