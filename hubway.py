@@ -140,8 +140,10 @@ for check_matrix in check_matrix_list:
     checkblock=numpy.genfromtxt(os.path.join(data_dir,check_matrix))
     print row,col
     check[row*10:(row+1)*10,col*10:(col+1)*10]=checkblock[0:10,0:10]
-        
-        
+
+start=check/1000       
+end=check%100     
+  
 plt.spy(times)
 
 plt.spy(times==-1) 
