@@ -1,133 +1,131 @@
 <!DOCTYPE html>
 <html>
   <head>
-	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-	<style type="text/css">
-	  html { height: 100% }
-	  body { height: 100%; margin: 0; padding: 0 }
-	  #map_canvas { height: 100% }
-	</style>
-	<script type="text/javascript"
-	  src="http://maps.googleapis.com/maps/api/js?&sensor=false">
-	</script>
-	<script type="text/javascript">
-		var map;
-		var directionsDisplay;
-		var directionsService = new google.maps.DirectionsService();
-	  function initialize() {
-		  directionsDisplay = new google.maps.DirectionsRenderer();
-		var boston = new google.maps.LatLng(42.340592,-71.09489);
-		var myOptions = {
-		  center: boston,
-		  zoom: 13,
-		  mapTypeId: google.maps.MapTypeId.ROADMAP
-		};
-		 map = new google.maps.Map(document.getElementById("map_canvas"),
-			myOptions);
-		directionsDisplay.setMap(map);
-		directionsDisplay.setPanel(document.getElementById("directionsPanel"));
-	  }
-	  
-	  var route;
-	  
-	  function coords(i){
-	  	return new google.maps.LatLng(route[i].lat, route[i].long)
-	  	//return ""+route[i].lat + ',' + route[i].long;
-	  };
-	    
-	  function make_next_button(i){
-	  	var container = document.getElementById("nextPanel");
-	  	container.innerHTML="This is leg "+(i)+" ";
-	  	var button = document.createElement("input");
-	  	button.type = "button"
-	  	button.value = "Next";
-	  	button.id=i
-	  	button.onclick = function(){
-	  		calc_route_leg(this.id*1+1); 
-	  	};
-	  	container.appendChild(button);
-	  } 
-	  
-	  function calc_route_leg(i){
-		if (i == route.length) { i = 0 ;}
-	  	var start = coords(i);
-	  	var end;
-	  	if (i+1 == route.length) { end = coords(0); }
-	  	else { end = coords(i+1); };
-	  	var request = {
-	  	  origin: start,
-	  	  destination: end,
-	  	  travelMode: google.maps.TravelMode.BICYCLING,
-	  	};
-	  	directionsService.route(request, function(result, status) {
-	  	  if (status == google.maps.DirectionsStatus.OK) {
-	  		directionsDisplay.setDirections(result);
-	  		make_next_button(i);
-	  	  }
-	  	});
-	  }
-	  
-	  function plotroute(route){
-		var flightPlanCoordinates = [];
-	  	  for (var i = 0; i < route.length; i++){
-	  		  station = route[i];
-	  		  
-	  		  // Create a Google LatLng object to pass to the Google Marker
-	  		  var point = new google.maps.LatLng(station.lat, station.long);
-	  		  // save it in the polyline coordinates list
-	  		  flightPlanCoordinates[i] = point;
-	  		  
-	  		  // Create the Google Marker Point with the LatLng object
-	  		  var marker = new google.maps.Marker({
-	  		  	position: point, 
-	  		  	map: map,
-	  		  	title: station.name,
-	  		  	id: i+0,
-	  		  });
-	  		  
-	  		  // Create an Event Listener that does something when user clicks a station
-	  		  google.maps.event.addListener(marker, 'click',
-	  		  	function()
-	  		  	{
-	  		  		calc_route_leg(this.id);
-	  		  	});
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map_canvas { height: 100% }
+    </style>
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?&sensor=false">
+    </script>
+    <script type="text/javascript">
+var map;
+var route;
+var directionsDisplay;
+var directionsService = new google.maps.DirectionsService();
+function initialize() {
+    directionsDisplay = new google.maps.DirectionsRenderer();
+    var boston = new google.maps.LatLng(42.340592,-71.09489);
+    var myOptions = {
+        center: boston,
+        zoom: 13,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+    directionsDisplay.setMap(map);
+    directionsDisplay.setPanel(document.getElementById("directionsPanel"));
+}
 
-	  	  }
-	  	  // close the loop on the flight plan
-	  	  flightPlanCoordinates[i] = flightPlanCoordinates[0];
-	  	  
-	      var flightPath = new google.maps.Polyline({
-	        path: flightPlanCoordinates,
-	        strokeColor: "#FF0000",
-	        strokeOpacity: 0.7,
-	        strokeWeight: 2
-	      });
-	      
-	      flightPath.setMap(map);
-		}
-	    
-	  function loadroute() {
-		  	var xobj = new XMLHttpRequest();
-		  	xobj.overrideMimeType("application/json");
-		  	xobj.open('GET', 'route.json', true);
-		  	xobj.onreadystatechange = function () {
-		  		if (xobj.readyState == 4) {
-		  			var jsonTexto = xobj.responseText;
-		  			route = JSON.parse(jsonTexto);
-		  			plotroute(route);
-		  		}
-		  	}
-		  	xobj.send(null);
-	  }
-	  
-	  loadroute();
-	  
-	</script>
+function get_coords(i){
+    return new google.maps.LatLng(route[i].lat, route[i].long)
+    //return ""+route[i].lat + ',' + route[i].long;
+}
+
+function make_next_button(i){
+    var container = document.getElementById("nextPanel");
+    container.innerHTML="This is leg "+(i)+" ";
+    var button = document.createElement("input");
+    button.type = "button"
+    button.value = "Next";
+    button.id = i;
+    button.onclick = function(){
+        calc_route_leg(this.id*1+1);
+    }
+    container.appendChild(button);
+} 
+
+function calc_route_leg(i){
+    if (i == route.length) { i = 0 ;}
+    var start = get_coords(i);
+    var end = (i+1 < route.length) ? get_coords(i+1) : get_coords(0);
+    var request = {
+        origin: start,
+        destination: end,
+        travelMode: google.maps.TravelMode.BICYCLING,
+    };
+    directionsService.route(request, function(result, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+            directionsDisplay.setDirections(result);
+            make_next_button(i);
+        }
+        else {
+            document.getElementById("directionsPanel").innerHTML="Error fetching directions";
+        }
+    });
+}
+
+function plotroute(route){
+    var flightPlanCoordinates = [];
+    for (var i = 0; i < route.length; i++){
+        station = route[i];
+        
+        // Create a Google LatLng object to pass to the Google Marker
+        var point = new google.maps.LatLng(station.lat, station.long);
+        // save it in the polyline coordinates list
+        flightPlanCoordinates[i] = point;
+        
+        // Create the Google Marker Point with the LatLng object
+        var marker = new google.maps.Marker({
+            position: point, 
+            map: map,
+            title: station.name,
+            id: i*1,
+        });
+        
+        // Create an Event Listener that does something when user clicks a station
+        google.maps.event.addListener(marker, 'click',
+            function(){
+                calc_route_leg(this.id);
+            });
+    }
+    // close the loop on the flight plan
+    flightPlanCoordinates[i] = flightPlanCoordinates[0];
+    
+    // draw the flight plan
+    var flightPath = new google.maps.Polyline({
+        path: flightPlanCoordinates,
+        strokeColor: "#FF0000",
+        strokeOpacity: 0.7,
+        strokeWeight: 2
+    });
+    flightPath.setMap(map);
+}
+
+function loadroute() {
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', 'route.json', true);
+    xobj.onreadystatechange = function () {
+        if (xobj.readyState == 4) {
+            var jsonTexto = xobj.responseText;
+            route = JSON.parse(jsonTexto);
+            plotroute(route);
+        }
+    }
+    xobj.send(null);
+}
+
+loadroute();
+
+    </script>
   </head>
   <body onload="initialize()">
-	<div id="map_canvas" style="float:left;width:70%; height:100%"></div>
-	<div id="directionsPanel" style="float:right;width:30%;height 100%">
-	<div id="nextPanel"></div>	
-	</div>
+    <div id="map_canvas" style="float:left;width:70%; height:100%"></div>
+    <div id="right_panel" style="float:right;width:30%;height 100%">
+        <div id="nextPanel"></div>
+        <div id="directionsPanel"></div>
+    </div>
   </body>
 </html>
