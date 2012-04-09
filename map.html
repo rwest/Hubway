@@ -30,31 +30,29 @@
 	  
 	  var route;
 	  
+	  function coords(i){
+	  	return new google.maps.LatLng(route[i].lat, route[i].long)
+	  	//return ""+route[i].lat + ',' + route[i].long;
+	  };
+	  function calc_route_leg(i){
+	  	var start = coords(i);
+	  	var end;
+	  	if (i+1 == route.length) { end = coords(0); }
+	  	else { end = coords(i+1); };
+	  	var request = {
+	  	  origin: start,
+	  	  destination: end,
+	  	  travelMode: google.maps.TravelMode.BICYCLING,
+	  	};
+	  	directionsService.route(request, function(result, status) {
+	  	  if (status == google.maps.DirectionsStatus.OK) {
+	  		directionsDisplay.setDirections(result);
+	  	  }
+	  	});
+	  }
+	  
 	  function plotroute(route){
 		var flightPlanCoordinates = [];
-	
-		function coords(i){
-			return new google.maps.LatLng(route[i].lat, route[i].long)
-			//return ""+route[i].lat + ',' + route[i].long;
-		};
-		  
-		function calc_route_leg(i){
-			var start = coords(i);
-			var end;
-			if (i+1 == route.length) { end = coords(0); }
-			else { end = coords(i+1); };
-			var request = {
-			  origin: start,
-			  destination: end,
-			  travelMode: google.maps.TravelMode.BICYCLING,
-			};
-			directionsService.route(request, function(result, status) {
-			  if (status == google.maps.DirectionsStatus.OK) {
-				directionsDisplay.setDirections(result);
-			  }
-			});
-		}
-		
 	  	  for (var i = 0; i < route.length; i++){
 	  		  station = route[i];
 	  		  
