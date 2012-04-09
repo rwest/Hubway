@@ -17,24 +17,24 @@ import numpy
 import time
 
 class Station():
-	def __init__(self):
-		self.id = 0
-	def __repr__(self):
-		return "<Station %2d>" % self.id
-	def __str__(self):
-		return self.lat+','+self.long
-	def prettystring(self):
-		return "%s at %s"%(self.name, str(self))
-	pass
+    def __init__(self):
+        self.id = 0
+    def __repr__(self):
+        return "<Station %2d>" % self.id
+    def __str__(self):
+        return self.lat+','+self.long
+    def prettystring(self):
+        return "%s at %s"%(self.name, str(self))
+    pass
 
 
 def distancematrix(startplaces,endplaces):
     geo_args = {
-    	'origins': startplaces,
-    	'destinations': endplaces,
-    	'mode': 'bicycling',
-    	'sensor': "false",
-    	}
+        'origins': startplaces,
+        'destinations': endplaces,
+        'mode': 'bicycling',
+        'sensor': "false",
+        }
     BASE_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json'
     url = BASE_URL + '?' + urllib.urlencode(geo_args)
     result = json.load(urllib2.urlopen(url))
@@ -44,14 +44,14 @@ def distancematrix(startplaces,endplaces):
     times = numpy.zeros((len(result['origin_addresses']), len(result['destination_addresses'])), dtype=numpy.int32) # times in seconds
     distances = numpy.zeros((len(result['origin_addresses']), len(result['destination_addresses'])), dtype=numpy.int32) # distances in m
     for i,row in enumerate(result['rows']):
-    	for j,element in enumerate(row['elements']):
-    	    if element['status']=='ZERO_RESULTS':
-    	        print 'ZERO_RESULTS for '  + result['origin_addresses'][i]  + ' to ' + result['destination_addresses'][j]
-    	        times[i][j]=-1
-    	        distances[i][j]=-1
-    	    else:
-    		    times[i][j] = element['duration']['value']
-    		    distances[i][j] = element['distance']['value']
+        for j,element in enumerate(row['elements']):
+            if element['status']=='ZERO_RESULTS':
+                print 'ZERO_RESULTS for '  + result['origin_addresses'][i]  + ' to ' + result['destination_addresses'][j]
+                times[i][j]=-1
+                distances[i][j]=-1
+            else:
+                times[i][j] = element['duration']['value']
+                distances[i][j] = element['distance']['value']
     return times,distances
         
         
@@ -61,12 +61,12 @@ tree = ElementTree()
 tree.parse(stations_file)
 stations = list()
 for s in tree.iter('station'):
-	station = Station()
-	station.id = int(s.find('id').text)
-	station.lat = s.find('lat').text
-	station.long = s.find('long').text
-	station.name = s.find('name').text
-	stations.append(station)
+    station = Station()
+    station.id = int(s.find('id').text)
+    station.lat = s.find('lat').text
+    station.long = s.find('long').text
+    station.name = s.find('name').text
+    stations.append(station)
 
 ##################### Change These ####################### 
 number_of_hackers=2     # This partitions the problem
@@ -131,10 +131,10 @@ inaccessible_stations = set(((times==-1).sum(1)>1).nonzero()[0])
 inaccessible_stations = inaccessible_stations.union(((times==-1).sum(0)>1).nonzero()[0])
 print "Difficulty accessing these stations, so removing them:"
 for s in inaccessible_stations:
-	print stations[s].prettystring()
+    print stations[s].prettystring()
 keepers = range(len(times))
 for s in inaccessible_stations:
-	keepers.remove(s)
+    keepers.remove(s)
 pruned_times = times[keepers][:,keepers]
 
 pruned_stations = [stations[i] for i in range(len(stations)) if i in keepers]
@@ -154,7 +154,7 @@ import sys
 # set OR_TOOLS_PATH in your environment to override the default
 or_tools_path = '/Users/rwest/XCodeProjects/google-or-tools/trunk'
 if not os.path.exists(or_tools_path):
-	or_tools_path = 'or_tools_path'
+    or_tools_path = 'or_tools_path'
 or_tools_path = os.getenv('OR_TOOLS_PATH',or_tools_path)
 sys.path.append(os.path.join(or_tools_path,'src'))
 
@@ -169,7 +169,7 @@ tsp_size = len(pruned_times)
 forbidden_connections = [] # a list of tuples of forbidden connections
 
 if True:
-	# TSP of size FLAGS.tsp_size
+    # TSP of size FLAGS.tsp_size
     # Second argument = 1 to build a single tour (it's a TSP).
     # Nodes are indexed from 0 to FLAGS_tsp_size - 1, by default the start of
     # the route is node 0.
@@ -187,8 +187,8 @@ if True:
 
     for from_node,to_node in forbidden_connections:
       if routing.NextVar(from_node).Contains(to_node):
-    	print 'Forbidding connection ' + str(from_node) + ' -> ' + str(to_node)
-    	routing.NextVar(from_node).RemoveValue(to_node)
+        print 'Forbidding connection ' + str(from_node) + ' -> ' + str(to_node)
+        routing.NextVar(from_node).RemoveValue(to_node)
 
     # Solve, returns a solution if any.
     assignment = routing.Solve()
@@ -201,8 +201,9 @@ if True:
       node = routing.Start(route_number)
       route = ''
       while not routing.IsEnd(node):
-    	route += pruned_stations[int(node)].prettystring() + ' -> \n'
-    	node = assignment.Value(routing.NextVar(node))
+        station = pruned_stations[int(node)]
+        route += station.prettystring() + ' -> \n'
+        node = assignment.Value(routing.NextVar(node))
       route += '0'
       print route
     else:
