@@ -77,7 +77,8 @@
 	  		  	});
 
 	  	  }
-	  	  
+	  	  // close the loop on the flight plan
+	  	  flightPlanCoordinates[i] = flightPlanCoordinates[0];
 	  	  
 	      var flightPath = new google.maps.Polyline({
 	        path: flightPlanCoordinates,
