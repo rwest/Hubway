@@ -53,7 +53,7 @@ def distancematrix(startplaces,endplaces):
             else:
                 times[i][j] = element['duration']['value']
                 distances[i][j] = element['distance']['value']
-    return times,distances
+    return times,distances,result
         
         
 stations_file = urllib2.urlopen('http://thehubway.com/data/stations/bikeStations.xml')
@@ -71,8 +71,8 @@ for s in tree.iter('station'):
 
 ##################### Change These ####################### 
 number_of_hackers=2     # This partitions the problem
-this_hacker=1           # hacker number 0 of 2
-debug=200       #debug is a limit for testing, make it very big for a full run
+this_hacker=0           # hacker number 0 of 2
+debug=2000       #debug is a limit for testing, make it very big for a full run
 data_dir = 'data'
 os.path.exists(data_dir) or os.mkdir(data_dir)
 
@@ -104,13 +104,13 @@ for idx_row in xrange(number_of_rowblocks):
         distfilename = os.path.join(data_dir,'dist_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
         timefilename = os.path.join(data_dir,'time_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
         checkfilename = os.path.join(data_dir,'check_matrix_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.txt')
-        
-        if os.path.exists(distfilename) and os.path.exists(timefilename):
-            print 'skipping ' + distfilename + ' and ' + timefilename
+        jsonfilename = os.path.join(data_dir,'json_result_'+str(this_hacker*number_of_rowblocks+idx_row)+'_'+str(idx_col)+'.js')
+        if os.path.exists(distfilename) and os.path.exists(timefilename) and os.path.exists(jsonfilename):
+            print 'skipping ' + distfilename + ' and ' + timefilename + ' and ' + jsonfilename
         else:
-            times,distances = distancematrix(startplaces,endplaces)
-            #with open(distfilename,'w') as f:
-            #        distances.tofile(f)
+            times,distances,result = distancematrix(startplaces,endplaces)
+            with open(jsonfilename,'w') as f:
+                 f.write(json.dumps(result))
             #with open(timefilename,'w') as f:
             #        distances.tofile(f)
             numpy.savetxt(distfilename,distances)
@@ -138,8 +138,8 @@ for check_matrix in check_matrix_list:
     row=int(row)
     col=int(col)
     checkblock=numpy.genfromtxt(os.path.join(data_dir,check_matrix))
-    print row,col
-    check[row*10:(row+1)*10,col*10:(col+1)*10]=checkblock[0:10,0:10]
+    rows,cols=checkblock.shape
+    check[row*10:row*10+rows,col*10:col*10+cols]=checkblock
 
 start=check/1000       
 end=check%100     
