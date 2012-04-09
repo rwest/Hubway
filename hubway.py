@@ -161,7 +161,7 @@ for s in inaccessible_stations:
     keepers.remove(s)
     
 print "Also removing these stations, just for testing:"
-for s in range(40):
+for s in range(0):
     if s in keepers:
         print stations[s].prettystring()
         keepers.remove(s)
