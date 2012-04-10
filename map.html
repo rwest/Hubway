@@ -56,6 +56,12 @@ function check_bike_layer(){
     if(document.getElementById('bike_checkbox').checked) { show_bike_layer() }
     else { hide_bike_layer() }
 }
+
+function next(i){
+    // returns i+1, or 0 if that would be off the end of the route
+    return (i*1+1 < route_length) ? (i+1) : 0;
+}
+
 function get_coords(i){
     return new google.maps.LatLng(route[i].lat, route[i].long)
     //return ""+route[i].lat + ',' + route[i].long;
@@ -98,7 +104,7 @@ function show_route_leg(i, directionResult) {
 function calc_route_leg(i){
     if (i == route.length) { i = 0 ;}
     var start = get_coords(i);
-    var end = (i+1 < route.length) ? get_coords(i+1) : get_coords(0);
+    var end = get_coords(next(i));
     var request = {
         origin: start,
         destination: end,
