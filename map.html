@@ -16,6 +16,7 @@ var route;
 var directionsDisplay;
 var flightPath;
 var directionsService = new google.maps.DirectionsService();
+var bicyclingLayer = new google.maps.BicyclingLayer();
 function initialize() {
     
     var boston = new google.maps.LatLng(42.340592,-71.09489);
@@ -29,6 +30,7 @@ function initialize() {
     var myRendererOptions = {
         suppressMarkers: true,
         suppressInfoWindows: false,
+        suppressBicyclingLayer: true,
     };
     directionsDisplay = new google.maps.DirectionsRenderer(myRendererOptions);
     directionsDisplay.setMap(map);
@@ -44,6 +46,16 @@ function initialize() {
 
 }
 
+function show_bike_layer(){
+    bicyclingLayer.setMap(map);
+}
+function hide_bike_layer(){
+    bicyclingLayer.setMap(null);
+}
+function check_bike_layer(){
+    if(document.getElementById('bike_checkbox').checked) { show_bike_layer() }
+    else { hide_bike_layer() }
+}
 function get_coords(i){
     return new google.maps.LatLng(route[i].lat, route[i].long)
     //return ""+route[i].lat + ',' + route[i].long;
@@ -158,6 +170,7 @@ loadroute();
   <body onload="initialize()">
     <div id="map_canvas" style="float:left;width:70%; height:100%"></div>
     <div id="right_panel" style="float:right;width:30%;height 100%">
+        <input type='checkbox' onchange='check_bike_layer();' id='bike_checkbox' label='Show bike routes' /> show bike routes.
         <div id="nextPanel"></div>
         <div id="directionsPanel"></div>
     </div>
