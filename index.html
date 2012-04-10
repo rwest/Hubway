@@ -167,7 +167,7 @@ function plot_route(route){
 
 function load_route() {
     var xobj = new XMLHttpRequest();
-    xobj.overrideMimeType("application/json");
+    if (xobj.overrideMimeType) xobj.overrideMimeType("application/json");
     xobj.open('GET', 'route.json', true);
     xobj.onreadystatechange = function () {
         if (xobj.readyState == 4) {
@@ -194,7 +194,7 @@ function plot_detailed_route(detailed_route) {
 function load_detailed_route() {
     // Try to load a detailed route plan from detailed_route.json
     var xobj = new XMLHttpRequest();
-    xobj.overrideMimeType("application/json");
+    if (xobj.overrideMimeType) xobj.overrideMimeType("application/json");
     xobj.open('GET', 'detailed_route.json', true);
     xobj.onreadystatechange = function () {
         if (xobj.readyState == 4) {
