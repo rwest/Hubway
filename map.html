@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <style type="text/css">
-      html { height: 100% }
+      html { height: 100%; font: 13px Helvetica,arial,freesans,clean,sans-serif; }
       body { height: 100%; margin: 0; padding: 0 }
       #map_canvas { height: 100% }
     </style>
@@ -13,6 +13,7 @@
     <script type="text/javascript">
 var map;
 var route;
+var route_length;
 var directionsDisplay;
 var flightPath;
 var markers=[];
@@ -70,10 +71,10 @@ function get_coords(i){
 
 function make_next_button(i){
     var container = document.getElementById("nextPanel");
-    container.innerHTML="This is leg "+(i*1)+" ";
+    container.innerHTML="This is leg "+(i*1+1)+" of "+route_length+" ";
     var button = document.createElement("input");
     button.type = "button"
-    button.value = "Next";
+    button.value = "Get Next Leg";
     button.id = i;
     button.onclick = function(){
         calc_route_leg(this.id*1+1);
@@ -101,7 +102,8 @@ function show_route_leg(i, directionResult) {
         if (element.equals(start)) { index_of_start = index; }
     });
     if (index_of_start<0) {
-        // can't find the coarse start point, probably already updated this leg.
+        // can't find the coarse start point, probably already updated this leg
+        // or loaded the detailed_route
         return;
     }
     path.removeAt(index_of_start);
@@ -109,6 +111,7 @@ function show_route_leg(i, directionResult) {
         path.insertAt(index_of_start+j, overview_path[j]);
     }
 }
+
 function calc_route_leg(i){
     if (i == route.length) { i = 0 ;}
     var start = get_coords(i);
@@ -129,7 +132,7 @@ function calc_route_leg(i){
     });
 }
 
-function plotroute(route){
+function plot_route(route){
     var flightPlanCoordinates = [];
     for (var i = 0; i < route.length; i++){
         station = route[i];
@@ -146,7 +149,6 @@ function plotroute(route){
             title: station.name,
             id: i*1,
         });
-        
         // Create an Event Listener that does something when user clicks a station
         google.maps.event.addListener(marker, 'click',
             function(){
@@ -162,7 +164,7 @@ function plotroute(route){
 
 }
 
-function loadroute() {
+function load_route() {
     var xobj = new XMLHttpRequest();
     xobj.overrideMimeType("application/json");
     xobj.open('GET', 'route.json', true);
@@ -170,24 +172,67 @@ function loadroute() {
         if (xobj.readyState == 4) {
             var jsonTexto = xobj.responseText;
             route = JSON.parse(jsonTexto);
-            plotroute(route);
-            make_next_button(0);
+            route_length = route.length
+            plot_route(route);
+            load_detailed_route();
         }
     }
     xobj.send(null);
 }
 
-loadroute();
+function plot_detailed_route(detailed_route) {
+    // clear the fligtPath red line and replace with the detailed_route
+    var path = flightPath.getPath();
+    path.clear();
+    for (var i = 0; i<detailed_route.length; i++) {
+        var corner = new google.maps.LatLng(detailed_route[i][0],detailed_route[i][1]);
+        path.push(corner);
+    }
+}
 
+function load_detailed_route() {
+    // Try to load a detailed route plan from detailed_route.json
+    var xobj = new XMLHttpRequest();
+    xobj.overrideMimeType("application/json");
+    xobj.open('GET', 'detailed_route.json', true);
+    xobj.onreadystatechange = function () {
+        if (xobj.readyState == 4) {
+            var jsonTexto = xobj.responseText;
+            detailed_route = JSON.parse(jsonTexto);
+            plot_detailed_route(detailed_route);
+        }
+    }
+    xobj.send(null);
+}
+
+load_route();
 
     </script>
   </head>
   <body onload="initialize()">
     <div id="map_canvas" style="float:left;width:70%; height:100%"></div>
     <div id="right_panel" style="float:right;width:30%;height 100%">
+        Overall Route: 3 hours 21 minutes.
         <input type='checkbox' onchange='check_bike_layer();' id='bike_checkbox' label='Show bike routes' /> show bike routes.
-        <div id="nextPanel"></div>
-        <div id="directionsPanel"></div>
+        <div id="nextPanel">
+        <input type='button' value='Start' onclick='calc_route_leg(0);' />
+        </div>
+        <div id="directionsPanel">
+        </div>
+        <h2>About this project</h2>
+        <p>
+        This route connects all<sup>*</sup> the <a href="http://www.thehubway.com/">Hubway</a> bicycle rental stations in Boston,
+        using the quickest possible cycling route according to cycling directions provided by
+        <a href="https://developers.google.com/maps/">Google Maps</a>.
+        Click on a marker on the map for directions from that station, or click the Start button above.
+        The <a href="http://en.wikipedia.org/wiki/Travelling_salesman_problem">traveling salesman</a>
+        optimization was performed using Google's <a href="http://code.google.com/p/or-tools/">Operations Research Tools</a>.
+        All the source code is available, so if you have any suggestions then
+        <a href="https://github.com/rwest/hubway/">fork me on GitHub</a>.
+        If you try the route, <a href="https://github.com/rwest/Hubway/issues">let me know how you get on</a>.
+        Anyone fancy a <a href="https://github.com/rwest/Hubway/wiki">race</a>?
+        </p>
+        <p><small><sup>*</sup>North Station is excluded, because Google couldn't figure out how to cycle to where Hubway claim the bike rack is.</small></p>
     </div>
   </body>
 </html>
