@@ -46,7 +46,8 @@ function initialize() {
     }
     flightPath = new google.maps.Polyline(myPolyLineOptions);
     flightPath.setMap(map);
-
+    
+    load_route();
 }
 
 function show_bike_layer(){
@@ -161,8 +162,7 @@ function plot_route(route){
     flightPlanCoordinates[i] = flightPlanCoordinates[0];
     
     // draw the flight plan
-    flightPath.setPath(flightPlanCoordinates)
-
+    flightPath.setPath(flightPlanCoordinates);
 }
 
 function load_route() {
@@ -205,8 +205,6 @@ function load_detailed_route() {
     }
     xobj.send(null);
 }
-
-load_route();
 
     </script>
   </head>
