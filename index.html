@@ -1,13 +1,23 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <title>Boston Hubway Challenge - Travelling Salesman Optimal Route</title>
+    
     <link rel="image_src" href="route.png"/>
     <meta property="og:image" content="route.png" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width, minimum-scale=1.0, maximum-scale=1.0" />
     <style type="text/css">
       html { height: 100%; font: 13px Helvetica,arial,freesans,clean,sans-serif; }
       body { height: 100%; margin: 0; padding: 0 }
-      #map_canvas { height: 100% }
+      .hidden { display: none;}
+      #bottom_button_panel { text-align: center;}
+      #map_canvas { float:left;width:70%; height:100%; }
+      #right_panel {float:right;width:29%;height 100%; padding: 0.5%;}
+      @media screen and (max-device-width: 480px){
+          #map_canvas { float:none; width:100%; height:70% }
+          #right_panel { float:none; width:96%; padding: 3% }
+      }
+      
     </style>
     <script type="text/javascript"
       src="http://maps.googleapis.com/maps/api/js?&sensor=false">
@@ -22,6 +32,7 @@ var flightPath;
 var markers=[];
 var directionsService = new google.maps.DirectionsService();
 var bicyclingLayer = new google.maps.BicyclingLayer();
+var displayedLeg = -1;
 function initialize() {
     
     var boston = new google.maps.LatLng(42.340592,-71.09489);
@@ -63,6 +74,10 @@ function check_bike_layer(){
     else { hide_bike_layer() }
 }
 
+function show_next_buttons(){
+    document.getElementById("next_button_1").className = 'next_button';
+    document.getElementById("next_button_2").className = 'next_button';
+}
 function next(i){
     // returns i+1, or 0 if that would be off the end of the route
     return (i*1+1 < route_length) ? (i+1) : 0;
@@ -73,18 +88,17 @@ function get_coords(i){
     //return ""+route[i].lat + ',' + route[i].long;
 }
 
-function make_next_button(i){
+function update_leg_info(i,directionResult){
+    var myRoute = directionResult.routes[0].legs[0];
+    var duration = myRoute.duration.text
     var container = document.getElementById("nextPanel");
-    container.innerHTML="This is leg "+(i*1+1)+" of "+route_length+" ";
-    var button = document.createElement("input");
-    button.type = "button"
-    button.value = "Get Next Leg";
-    button.id = i;
-    button.onclick = function(){
-        calc_route_leg(this.id*1+1);
-    }
-    container.appendChild(button);
+    container.innerHTML="This is leg "+(i*1+1)+" of "+route_length+" (~"+duration+")";
+    document.getElementById("bottom_button_panel").style="display:block;";
 } 
+
+function calc_next_leg() {
+    calc_route_leg(next(displayedLeg));
+}
 
 function show_route_leg(i, directionResult) {
     directionsDisplay.setDirections(directionResult);
@@ -96,9 +110,7 @@ function show_route_leg(i, directionResult) {
     markers[i].setIcon('http://maps.gstatic.com/mapfiles/markers2/icon_greenA.png');
     markers[next(i)].setIcon('http://maps.gstatic.com/mapfiles/markers2/icon_greenB.png');
     
-    var myRoute = directionResult.routes[0].legs[0];
     var overview_path = directionResult.routes[0].overview_path;
-    
     var start = get_coords(i);
     var index_of_start = -1;
     var path = flightPath.getPath();
@@ -117,6 +129,7 @@ function show_route_leg(i, directionResult) {
 }
 
 function calc_route_leg(i){
+    if (displayedLeg < 0) { show_next_buttons() }
     if (i == route.length) { i = 0 ;}
     var start = get_coords(i);
     var end = get_coords(next(i));
@@ -127,8 +140,9 @@ function calc_route_leg(i){
     };
     directionsService.route(request, function(result, status) {
         if (status == google.maps.DirectionsStatus.OK) {
+            displayedLeg = i;
             show_route_leg(i, result);
-            make_next_button(i);
+            update_leg_info(i, result);
         }
         else {
             document.getElementById("directionsPanel").innerHTML="Error fetching directions";
@@ -211,15 +225,17 @@ function load_detailed_route() {
     </script>
   </head>
   <body onload="initialize()">
-    <div id="map_canvas" style="float:left;width:70%; height:100%"></div>
-    <div id="right_panel" style="float:right;width:30%;height 100%">
+    <div id="map_canvas" ></div>
+    <div id="right_panel">
         Overall Route: 3 hours 21 minutes.
-        <input type='checkbox' onchange='check_bike_layer();' id='bike_checkbox' label='Show bike routes' /> show bike routes.
-        <div id="nextPanel">
+        <span style="white-space:nowrap;"><input type='checkbox' onchange='check_bike_layer();' id='bike_checkbox' label='Show bike paths' /> show bike paths.</span>
+        <span id="nextPanel" style="white-space:nowrap;">
         <input type='button' value='Start' onclick='calc_route_leg(0);' />
-        </div>
-        <div id="directionsPanel">
-        </div>
+        </span>
+        <input class='next_button hidden' id='next_button_1' type='button' value='Get Next Leg' onclick='calc_next_leg();' />
+        <div id="directionsPanel"></div>
+        <div id="bottom_button_panel">
+        <input class='next_button hidden' id='next_button_2' type='button' value='Get Next Leg' onclick='calc_next_leg(); window.scrollTo(0,0);' /></div>
         <h2>About this project</h2>
         <p>
         This route connects all<sup>*</sup> the <a href="http://www.thehubway.com/">Hubway</a> bicycle rental stations in Boston,
@@ -233,7 +249,8 @@ function load_detailed_route() {
         If you try the route let me know how you get on <a href="https://github.com/rwest/Hubway/issues">here</a>,
         or follow me on twitter <a href="http://twitter.com/richardhwest">here</a>.
         Anyone fancy a <a href="https://github.com/rwest/Hubway/wiki">race</a>?
-        </p><a href="https://twitter.com/intent/tweet?screen_name=richardhwest&text=%40Hubway" class="twitter-mention-button" data-related="richardhwest,Hubway">Tweet to @richardhwest</a>
+        </p>
+        <center><a href="https://twitter.com/intent/tweet?screen_name=richardhwest&text=%40Hubway" class="twitter-mention-button" data-related="richardhwest,Hubway">Tweet to @richardhwest</a></center>
         <p><small><sup>*</sup>North Station is excluded, because Google couldn't figure out how to cycle to where Hubway claim the bike rack is.</small></p>
     </div>
   </body>
